@@ -19,11 +19,9 @@ def findRemovedSongs(playlists_past, playlists_current):
             offset = playlists_current[playlist].videos.index(playlists_past[playlist].videos[i]) - i
 
             # Find rest of removed videos, stopping when at the end of either playlist
-            i = 0
             while(i + offset < len(playlists_past[playlist].videos) and i < len(playlists_past[playlist].videos)):
                 if (not playlists_past[playlist].videos[i] in playlists_current[playlist].videos):
                     removed_songs_playlist.append(playlists_past[playlist].videos[i])
-                    offset -= 1
                 i += 1
 
             if (removed_songs_playlist != []):
