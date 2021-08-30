@@ -38,12 +38,18 @@ def postPlaylistsToFirebase(playlists_current):
 def readPastPlaylistsFromFirebase():
     ref = db.reference("playlists", app = default_app)
     id = datetime.now().date() + timedelta(days=-1)
-    playlists_ref_past = ref.child(str(id))
-
-    playlists_past = []
 
     try:
+        playlists_past = []
+        playlists_ref_past = ref.child(str(id))
         playlists_past_json = playlists_ref_past.get(etag=True)
+
+        for _ in range(365):
+            id += timedelta(days=-1)
+            playlists_ref_past = ref.child(str(id))
+            playlists_past_json = playlists_ref_past.get(etag=True)
+            if (playlists_past_json[0] != None):
+                break
 
         for playlist in playlists_past_json[0]:
             playlists_past.append(Playlist(playlist, "None", json.loads(playlists_past_json[0][playlist])))
