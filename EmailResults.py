@@ -37,13 +37,20 @@ def emailError(error_msg, ex):
         except Exception:
             logging.exception("Failed to send email")
         
+def removedSongsAmount(removed_songs):
+    amount = 0
+    for playlist in removed_songs:
+        for name in playlist:
+            amount += len(playlist[name])
+    return amount
+
 def emailResults(removed_songs):
     email_json = open("data.json")
     email_data = json.load(email_json)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         msg = EmailMessage()
-        msg["Subject"] = str(len(removed_songs)) + " Removed Songs"
+        msg["Subject"] = str(removedSongsAmount(removed_songs)) + " Removed Songs"
         msg["From"] = email_data["from-email"]["email"]
         msg["To"] = email_data["to-email"]
         msg.set_content(generateBody(removed_songs))

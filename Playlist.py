@@ -1,4 +1,11 @@
+from datetime import datetime
 import requests
+
+def printTextToFile(text, name):
+    from random import random
+    f = open(str(random()) + name + ".txt", "a")
+    f.write(text.encode("ascii", "ignore").decode())
+    f.close()
 
 class Playlist(object):
     name = str()
@@ -16,12 +23,18 @@ class Playlist(object):
         badChars = '$#[]/"\\()\''
         html = requests.get(self.url)
         text = html.text
-        searchText = '"},"longBylineText":{"runs":[{"text":"'
+        titleSearchText = '"},"longBylineText":{"runs":[{"text":"'
+        urlSearchText = '"commandMetadata":{"webCommandMetadata":{"url":"/watch?v='
+        unplayableSearchText = 'unplayableText":{"simpleText":"'
+
         urlPrefix = 'https://www.youtube.com'
 
         currentVideo = 1
         newUrl = "index=" + str(currentVideo)
         videoTitles = []
+        unplayableUrls = []
+        blockedCountryUrls = []
+        blockedCountryVideos = []
 
         while(text.find(newUrl) != -1):
             mainTitle = ''
@@ -40,6 +53,7 @@ class Playlist(object):
 
                 html = requests.get(newUrl)
                 text = html.text
+                # printTextToFile(text, self.name)
 
                 for i in range(text.find('<title>') + len('<title>'), text.find(' - YouTube</title>')):
                     if (not text[i] in badChars):
@@ -53,23 +67,56 @@ class Playlist(object):
                         currentVideo -= 1
                     newUrl = "index=" + str(currentVideo)
 
-            indices = [i - 1 for i in range(len(text)) if text.startswith(searchText, i)]
+            unplayableIndices = [i + len(unplayableSearchText) for i in range(len(text)) if text.startswith(unplayableSearchText, i)]
+            for i in unplayableIndices:
+                videoId = ''
+                quoteCount = 0
+                for j in range(i, len(text)):
+                    if (quoteCount == 5):
+                        unplayableUrls.append(videoId)
+                        break
+                    else:
+                        if (text[j] == '"'):
+                            quoteCount += 1
+                        elif (quoteCount == 4):
+                            videoId += text[j]
 
+            unplayableUrls = list(dict.fromkeys(unplayableUrls))
             
-            for i in indices:
+            videoIndices = [i - 1 for i in range(len(text)) if text.startswith(titleSearchText, i)]
+            urlIndices = [i + len(urlSearchText) for i in range(len(text)) if text.startswith(urlSearchText, i)]
+
+            for i in videoIndices:
                 title = ''
                 for j in range(i, -1, -1):
                     if (text[j] == '"' and text[j - 1] == ':' and text[j - 2] == '"'):
-                        if (startAdding):
-                            videoTitles.append(title)
-                        elif (title == mainTitle):
+                        if (title == mainTitle):
                             startAdding = True
-                            videoTitles.append(title)
+                        if (startAdding):
+                            newUrl = ''
+                            for k in urlIndices:
+                                if (k > i):
+                                    for l in range(k, len(text)):
+                                        if (text[l] == '\\'):
+                                            break
+                                        else:
+                                            newUrl += text[l]
+                                    break
+                            if (not newUrl in unplayableUrls):
+                                videoTitles.append(title)
+                            else:
+                                blockedCountryVideos.append(title)
+                                blockedCountryUrls.append(newUrl)
                         break
                     if (not text[j] in badChars):
                         title = text[j] + title
 
             currentVideo += 100
             newUrl = "index=" + str(currentVideo)
+
+        blockedCountryVideos = list(dict.fromkeys(blockedCountryVideos))
+        blockedCountryUrls = list(dict.fromkeys(blockedCountryUrls))
+
+        privatedOrRemovedUrls = [x for x in unplayableUrls if x not in blockedCountryUrls]
 
         self.videos = list(dict.fromkeys(videoTitles))
