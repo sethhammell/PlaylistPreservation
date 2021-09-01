@@ -99,6 +99,7 @@ class Playlist(object):
                         mainTitle += text[i]
 
                 mainTitle = mainTitle.replace('&quot;', '')
+                mainTitle = mainTitle.replace('&39;', '')
 
                 if (mainTitle == ''):
                     text = prevText
