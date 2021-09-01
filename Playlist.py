@@ -1,11 +1,51 @@
-from datetime import datetime
 import requests
 
 def printTextToFile(text, name):
-    from random import random
-    f = open(str(random()) + name + ".txt", "a")
+    f = open("log_" + name + ".txt", "a")
     f.write(text.encode("ascii", "ignore").decode())
     f.close()
+
+def printBlockedVideos(blockedCountryVideos, blockedCountryUrls, name):
+    youtubePrefix = 'www.youtube.com/watch?v='
+
+    print("Blocked videos from " + name + " (" + str(len(blockedCountryVideos)) + "):")
+    for i in range(0, len(blockedCountryVideos)):
+        print(youtubePrefix + blockedCountryUrls[i] + " : " + blockedCountryVideos[i])
+    print('')
+
+def scrapePrivatedOrRemovedSongs(privatedOrRemovedUrls, name):
+    urlPrefix = 'https://web.archive.org/web/20180203081816/https://www.youtube.com/watch?v='
+    youtubePrefix = 'www.youtube.com/watch?v='
+    searchText = '<meta itemprop="name" content="'
+    foundSongs = []
+    notFoundUrls = []
+
+    for privatedOrRemovedUrl in privatedOrRemovedUrls:
+        url = urlPrefix + privatedOrRemovedUrl
+
+        html = requests.get(url)
+        text = html.text
+
+        if (searchText in text):
+            index = text.find(searchText) + len(searchText)
+            title = ''
+            for i in range(index, len(text)):
+                if (text[i] == '"' and text[i + 1] == '>'):
+                    break
+                else:
+                    title += text[i]
+            foundSongs.append([youtubePrefix + privatedOrRemovedUrl, title])
+        else:
+            notFoundUrls.append(youtubePrefix + privatedOrRemovedUrl)
+    
+    print("Results of Scraping " + str(len(privatedOrRemovedUrls)) + " Privated or Removed Songs from " + name + ':')
+    print("Found (" + str(len(foundSongs)) + "):")
+    for song in foundSongs:
+        print(song[0] + " : " + song[1])
+    print("Not Found (" + str(len(notFoundUrls)) + "):")
+    for url in notFoundUrls:
+        print(url, end=', ')
+    print('\n')
 
 class Playlist(object):
     name = str()
@@ -53,11 +93,12 @@ class Playlist(object):
 
                 html = requests.get(newUrl)
                 text = html.text
-                # printTextToFile(text, self.name)
 
                 for i in range(text.find('<title>') + len('<title>'), text.find(' - YouTube</title>')):
                     if (not text[i] in badChars):
                         mainTitle += text[i]
+
+                mainTitle = mainTitle.replace('&quot;', '')
 
                 if (mainTitle == ''):
                     text = prevText
@@ -101,10 +142,12 @@ class Playlist(object):
                                             break
                                         else:
                                             newUrl += text[l]
+                                            if (text[l] == '"'):
+                                                break
                                     break
-                            if (not newUrl in unplayableUrls):
+                            if (not newUrl in unplayableUrls and '"' not in newUrl):
                                 videoTitles.append(title)
-                            else:
+                            elif ('"' not in newUrl):
                                 blockedCountryVideos.append(title)
                                 blockedCountryUrls.append(newUrl)
                         break
@@ -117,6 +160,11 @@ class Playlist(object):
         blockedCountryVideos = list(dict.fromkeys(blockedCountryVideos))
         blockedCountryUrls = list(dict.fromkeys(blockedCountryUrls))
 
-        privatedOrRemovedUrls = [x for x in unplayableUrls if x not in blockedCountryUrls]
+        # If uncommented, printBlockedVideos and scrapePrivatedOrRemovedSongs will only be printed on screen, not emailed
+        # printBlockedVideos(blockedCountryVideos, blockedCountryUrls, self.name)
+
+        # Takes at least 10 minutes
+        # privatedOrRemovedUrls = [x for x in unplayableUrls if x not in blockedCountryUrls]
+        # scrapePrivatedOrRemovedSongs(privatedOrRemovedUrls, self.name)
 
         self.videos = list(dict.fromkeys(videoTitles))

@@ -11,7 +11,7 @@ def findRemovedSongs(playlists_past, playlists_current):
             removed_songs_playlist = []
 
             for video in playlists_past[playlist].videos:
-                if(not video in playlists_current[playlist].videos):
+                if (not video in playlists_current[playlist].videos):
                     removed_songs_playlist.append(video)
 
             if (removed_songs_playlist != []):
