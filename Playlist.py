@@ -147,7 +147,7 @@ class Playlist(object):
                                                 break
                                     break
                             if (not newUrl in unplayableUrls and '"' not in newUrl):
-                                videoTitles.append(title)
+                                videoTitles.append((title, newUrl))
                             elif ('"' not in newUrl):
                                 blockedCountryVideos.append(title)
                                 blockedCountryUrls.append(newUrl)

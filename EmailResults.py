@@ -10,9 +10,10 @@ def generateBody(removed_songs):
     body = ""
 
     for playlist in removed_songs:
+        youtubePrefix = 'www.youtube.com/watch?v='
         for name in playlist:
             for song in playlist[name]:
-                body += name + " - " + song + '\r\n'
+                body += name + " - " + song[0] + " - " + youtubePrefix + song[1] + '\r\n'
     
     return body
 

@@ -5,7 +5,7 @@ from EmailResults import emailResults, sendEmail
 
 playlists_current = populatePlaylists()
 
-postPlaylistsToFirebase(playlists_current)    
+postPlaylistsToFirebase(playlists_current)
 playlists_past = readPastPlaylistsFromFirebase()
 
 removed_songs = findRemovedSongs(playlists_past, playlists_current)
