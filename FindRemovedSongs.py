@@ -7,6 +7,8 @@ def findRemovedSongs(playlists_past, playlists_current):
 
     try:
         for playlist in range(len(playlists_past)):
+            if (playlist >= len(playlists_current)):
+              break
             removed_songs_playlist = []
 
             for video in playlists_past[playlist].videos:

@@ -1,5 +1,8 @@
 import requests
 
+def removeAscii(text):
+  return text.encode("ascii", "ignore").decode()
+
 def printTextToFile(text, name):
     f = open("log_" + name + ".txt", "a")
     f.write(text.encode("ascii", "ignore").decode())
@@ -78,7 +81,7 @@ class Playlist(object):
 
         while(text.find(newUrl) != -1):
             mainTitle = ''
-            startAdding = False
+            # startAdding = False
             prevText = text
 
             while(mainTitle == ''):
@@ -100,6 +103,7 @@ class Playlist(object):
 
                 mainTitle = mainTitle.replace('&quot;', '')
                 mainTitle = mainTitle.replace('&39;', '')
+                # remove '&amp' ?
 
                 if (mainTitle == ''):
                     text = prevText
@@ -108,6 +112,8 @@ class Playlist(object):
                     else:
                         currentVideo -= 1
                     newUrl = "index=" + str(currentVideo)
+                # else:
+                #   printTextToFile(text, mainTitle)
 
             unplayableIndices = [i + len(unplayableSearchText) for i in range(len(text)) if text.startswith(unplayableSearchText, i)]
             for i in unplayableIndices:
@@ -132,20 +138,17 @@ class Playlist(object):
                 title = ''
                 for j in range(i, -1, -1):
                     if (text[j] == '"' and text[j - 1] == ':' and text[j - 2] == '"'):
-                        if (title == mainTitle):
-                            startAdding = True
-                        if (startAdding):
-                            newUrl = ''
-                            for k in urlIndices:
-                                if (k > i):
-                                    for l in range(k, len(text)):
-                                        if (text[l] == '\\'):
-                                            break
-                                        else:
-                                            newUrl += text[l]
-                                            if (text[l] == '"'):
-                                                break
-                                    break
+                        newUrl = ''
+                        for k in urlIndices:
+                            if (k > i):
+                                for l in range(k, len(text)):
+                                    if (text[l] == '"'):
+                                        break
+                                    else:
+                                        newUrl += text[l]
+                                break
+                        if ("index" in newUrl):
+                            newUrl = newUrl[0 : newUrl.find('\\')]
                             if (not newUrl in unplayableUrls and '"' not in newUrl):
                                 videoTitles.append((title, newUrl))
                             elif ('"' not in newUrl):
