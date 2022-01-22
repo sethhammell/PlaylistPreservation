@@ -1,10 +1,13 @@
 import requests
 
+logging = True
+
 def removeAscii(text):
   return text.encode("ascii", "ignore").decode()
 
 def printTextToFile(text, name):
-    f = open("log_" + name + ".txt", "a")
+    directory = "TodaysLogs/"
+    f = open(directory + name + ".txt", "a")
     f.write(text.encode("ascii", "ignore").decode())
     f.close()
 
@@ -103,6 +106,7 @@ class Playlist(object):
 
                 mainTitle = mainTitle.replace('&quot;', '')
                 mainTitle = mainTitle.replace('&39;', '')
+                mainTitle = mainTitle.replace('amp;', '')
                 # remove '&amp' ?
 
                 if (mainTitle == ''):
@@ -112,8 +116,8 @@ class Playlist(object):
                     else:
                         currentVideo -= 1
                     newUrl = "index=" + str(currentVideo)
-                # else:
-                #   printTextToFile(text, mainTitle)
+                elif logging:
+                  printTextToFile(text, mainTitle)
 
             unplayableIndices = [i + len(unplayableSearchText) for i in range(len(text)) if text.startswith(unplayableSearchText, i)]
             for i in unplayableIndices:
