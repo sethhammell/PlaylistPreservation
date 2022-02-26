@@ -1,5 +1,6 @@
 import requests
 
+playlistIncrement = 90
 logging = True
 
 def removeAscii(text):
@@ -117,7 +118,7 @@ class Playlist(object):
                         currentVideo -= 1
                     newUrl = "index=" + str(currentVideo)
                 elif logging:
-                  printTextToFile(text, mainTitle)
+                  printTextToFile(text, self.name + '-' + str(currentVideo))
 
             unplayableIndices = [i + len(unplayableSearchText) for i in range(len(text)) if text.startswith(unplayableSearchText, i)]
             for i in unplayableIndices:
@@ -162,7 +163,7 @@ class Playlist(object):
                     if (not text[j] in badChars):
                         title = text[j] + title
 
-            currentVideo += 100
+            currentVideo += playlistIncrement
             newUrl = "index=" + str(currentVideo)
 
         blockedCountryVideos = list(dict.fromkeys(blockedCountryVideos))
