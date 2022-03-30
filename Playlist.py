@@ -77,11 +77,12 @@ class Playlist(object):
         urlPrefix = 'https://www.youtube.com'
 
         currentVideo = 1
-        newUrl = "index=" + str(currentVideo)
+        newUrl = "index=" + str(currentVideo) + '"'
         videoTitles = []
         unplayableUrls = []
         blockedCountryUrls = []
         blockedCountryVideos = []
+        printTextToFile(text, self.name + '- original')
 
         while(text.find(newUrl) != -1):
             mainTitle = ''
