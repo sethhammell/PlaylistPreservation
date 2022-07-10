@@ -7,6 +7,7 @@ def removeAscii(text):
   return text.encode("ascii", "ignore").decode()
 
 def printTextToFile(text, name):
+    return
     directory = "TodaysLogs/"
     f = open(directory + name + ".txt", "a")
     f.write(text.encode("ascii", "ignore").decode())
