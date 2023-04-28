@@ -9,6 +9,7 @@ postPlaylistsToFirebase(playlists_current)
 playlists_past = readPastPlaylistsFromFirebase()
 
 removed_songs = findRemovedSongs(playlists_past, playlists_current)
+print(removed_songs)
 
 if (sendEmail(removed_songs)):
     emailResults(removed_songs)

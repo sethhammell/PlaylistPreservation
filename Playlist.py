@@ -1,10 +1,13 @@
 import requests
+import json
 
 playlistIncrement = 90
 logging = True
 
+
 def removeAscii(text):
-  return text.encode("ascii", "ignore").decode()
+    return text.encode("ascii", "ignore").decode()
+
 
 def printTextToFile(text, name):
     return
@@ -13,13 +16,17 @@ def printTextToFile(text, name):
     f.write(text.encode("ascii", "ignore").decode())
     f.close()
 
+
 def printBlockedVideos(blockedCountryVideos, blockedCountryUrls, name):
     youtubePrefix = 'www.youtube.com/watch?v='
 
-    print("Blocked videos from " + name + " (" + str(len(blockedCountryVideos)) + "):")
+    print("Blocked videos from " + name +
+          " (" + str(len(blockedCountryVideos)) + "):")
     for i in range(0, len(blockedCountryVideos)):
-        print(youtubePrefix + blockedCountryUrls[i] + " : " + blockedCountryVideos[i])
+        print(youtubePrefix +
+              blockedCountryUrls[i] + " : " + blockedCountryVideos[i])
     print('')
+
 
 def scrapePrivatedOrRemovedSongs(privatedOrRemovedUrls, name):
     urlPrefix = 'https://web.archive.org/web/20180203081816/https://www.youtube.com/watch?v='
@@ -45,8 +52,9 @@ def scrapePrivatedOrRemovedSongs(privatedOrRemovedUrls, name):
             foundSongs.append([youtubePrefix + privatedOrRemovedUrl, title])
         else:
             notFoundUrls.append(youtubePrefix + privatedOrRemovedUrl)
-    
-    print("Results of Scraping " + str(len(privatedOrRemovedUrls)) + " Privated or Removed Songs from " + name + ':')
+
+    print("Results of Scraping " + str(len(privatedOrRemovedUrls)) +
+          " Privated or Removed Songs from " + name + ':')
     print("Found (" + str(len(foundSongs)) + "):")
     for song in foundSongs:
         print(song[0] + " : " + song[1])
@@ -55,19 +63,77 @@ def scrapePrivatedOrRemovedSongs(privatedOrRemovedUrls, name):
         print(url, end=', ')
     print('\n')
 
+
 class Playlist(object):
     name = str()
     url = str()
     videos = list(str())
 
-    def __init__(self, name, url = "None", videos = []):
+    def __init__(self, name, url="None", videos=None):
         self.name = name
         self.url = url
-        self.videos = videos
+        self.videos = videos if videos is not None else []
         if url != "None":
             self.getAllPlaylistVideos()
 
+    def filterRemovedVideos(self, items):
+        badChars = '$#[]/"\\()\''
+        youtubePrefix = 'http://www.youtube.com/watch?v='
+
+        for i in items:
+            newTitle = "".join(
+                [char for char in i['snippet']['title'] if char not in badChars])
+            newTitle = newTitle.replace('&', "u0026")
+
+            if i['status']['privacyStatus'] == "public":
+                self.videos.append(
+                    (newTitle, i['snippet']['resourceId']['videoId']))
+            elif i['status']['privacyStatus'] == "unlisted":
+                html = requests.get(
+                    youtubePrefix + i['snippet']['resourceId']['videoId'])
+                text = html.text
+                if (text.find('Video unavailable') == -1):
+                    self.videos.append(
+                        (newTitle, i['snippet']['resourceId']['videoId']))
+
     def getAllPlaylistVideos(self):
+        playlist_json = open("data.json")
+        playlist_data = json.load(playlist_json)
+
+        print(self.name, self.url[-34:])
+
+        params = {
+            'part': 'snippet,status',
+            'maxResults': 50,
+            'playlistId': self.url[-34:],
+            'key': playlist_data["apiKey"]
+        }
+
+        response = requests.get(
+            'https://www.googleapis.com/youtube/v3/playlistItems', params=params)
+        json_data = response.json()
+
+        items = json_data['items']
+
+        self.filterRemovedVideos(items)
+
+        next_page_token = json_data.get('nextPageToken')
+
+        while next_page_token:
+            params['pageToken'] = next_page_token
+
+            response = requests.get(
+                'https://www.googleapis.com/youtube/v3/playlistItems', params=params)
+            json_data = response.json()
+            items = json_data['items']
+
+            self.filterRemovedVideos(items)
+
+            next_page_token = json_data.get('nextPageToken')
+
+        print(len(self.videos))
+
+    def getAllPlaylistVideosOld(self):
         badChars = '$#[]/"\\()\''
         html = requests.get(self.url)
         text = html.text
@@ -85,15 +151,15 @@ class Playlist(object):
         blockedCountryVideos = []
         printTextToFile(text, self.name + '- original')
 
-        while(text.find(newUrl) != -1):
+        while (text.find(newUrl) != -1):
             mainTitle = ''
             # startAdding = False
             prevText = text
 
-            while(mainTitle == ''):
+            while (mainTitle == ''):
                 i = text.find(newUrl) - 1
 
-                while(text[i] != '"'):
+                while (text[i] != '"'):
                     newUrl = text[i] + newUrl
                     i -= 1
 
@@ -120,9 +186,10 @@ class Playlist(object):
                         currentVideo -= 1
                     newUrl = "index=" + str(currentVideo)
                 elif logging:
-                  printTextToFile(text, self.name + '-' + str(currentVideo))
+                    printTextToFile(text, self.name + '-' + str(currentVideo))
 
-            unplayableIndices = [i + len(unplayableSearchText) for i in range(len(text)) if text.startswith(unplayableSearchText, i)]
+            unplayableIndices = [i + len(unplayableSearchText) for i in range(
+                len(text)) if text.startswith(unplayableSearchText, i)]
             for i in unplayableIndices:
                 videoId = ''
                 quoteCount = 0
@@ -137,9 +204,11 @@ class Playlist(object):
                             videoId += text[j]
 
             unplayableUrls = list(dict.fromkeys(unplayableUrls))
-            
-            videoIndices = [i - 1 for i in range(len(text)) if text.startswith(titleSearchText, i)]
-            urlIndices = [i + len(urlSearchText) for i in range(len(text)) if text.startswith(urlSearchText, i)]
+
+            videoIndices = [
+                i - 1 for i in range(len(text)) if text.startswith(titleSearchText, i)]
+            urlIndices = [i + len(urlSearchText)
+                          for i in range(len(text)) if text.startswith(urlSearchText, i)]
 
             for i in videoIndices:
                 title = ''
@@ -155,7 +224,7 @@ class Playlist(object):
                                         newUrl += text[l]
                                 break
                         if ("index" in newUrl):
-                            newUrl = newUrl[0 : newUrl.find('\\')]
+                            newUrl = newUrl[0: newUrl.find('\\')]
                             if (not newUrl in unplayableUrls and '"' not in newUrl):
                                 videoTitles.append((title, newUrl))
                             elif ('"' not in newUrl):
