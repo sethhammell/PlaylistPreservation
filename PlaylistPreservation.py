@@ -2,9 +2,14 @@ from PopulatePlaylists import populatePlaylists
 from FindRemovedSongs import findRemovedSongs
 from FirebaseContext import postPlaylistsToFirebase, readPastPlaylistsFromFirebase
 from EmailResults import emailResults, sendEmail
+from DownloadPlaylists import downloadPlaylists
+
+# e.g. of video Youtube API can't recognize as unavailable:
+# https://www.youtube.com/watch?v=s9NZI48GVQ8
 
 playlists_current = populatePlaylists()
 
+downloadPlaylists(playlists_current)
 postPlaylistsToFirebase(playlists_current)
 playlists_past = readPastPlaylistsFromFirebase()
 
