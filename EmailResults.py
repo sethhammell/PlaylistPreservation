@@ -3,32 +3,39 @@ import win32com.client as win32
 import smtplib
 import json
 import logging
+import os
+
 
 def sendEmail(removed_songs):
     return removed_songs != []
+
 
 def generateBody(removed_songs):
     body = ""
 
     for playlist in removed_songs:
-        youtubePrefix = 'www.youtube.com/watch?v='
+        youtubePrefix = "www.youtube.com/watch?v="
         for name in playlist:
             for song in playlist[name]:
-                body += name + " - " + song[0] + " - " + youtubePrefix + song[1] + '\r\n'
-    
+                body += (
+                    name + " - " + song[0] + " - " + youtubePrefix + song[1] + "\r\n"
+                )
+
     return body
+
 
 def emailError(error_msg, ex):
     email_json = open("data.json")
     email_data = json.load(email_json)
 
-    outlook = win32.Dispatch('outlook.application')
+    outlook = win32.Dispatch("outlook.application")
     mail = outlook.CreateItem(0)
     mail.To = email_data["to-email"]
     mail.Subject = error_msg
     mail.Body = str(ex)
 
     mail.Send()
+    os.system("taskkill /im outlook.exe /f")
 
     # with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
     #     msg = EmailMessage()
@@ -41,12 +48,13 @@ def emailError(error_msg, ex):
     #         smtp.login(email_data["from-email"]["email"], email_data["from-email"]["password"])
     #     except Exception:
     #         logging.exception("Failed to login to email")
-        
+
     #     try:
     #         smtp.send_message(msg)
     #     except Exception:
     #         logging.exception("Failed to send email")
-        
+
+
 def removedSongsAmount(removed_songs):
     amount = 0
     for playlist in removed_songs:
@@ -54,17 +62,19 @@ def removedSongsAmount(removed_songs):
             amount += len(playlist[name])
     return amount
 
+
 def emailResults(removed_songs):
     email_json = open("data.json")
     email_data = json.load(email_json)
 
-    outlook = win32.Dispatch('outlook.application')
+    outlook = win32.Dispatch("outlook.application")
     mail = outlook.CreateItem(0)
     mail.To = email_data["to-email"]
     mail.Subject = str(removedSongsAmount(removed_songs)) + " Removed Songs"
     mail.Body = generateBody(removed_songs)
 
     mail.Send()
+    os.system("taskkill /im outlook.exe /f")
 
     # with smtplib.SMTP_SSL("smtp.gmail.com", 587) as smtp:
     #     msg = EmailMessage()
@@ -77,7 +87,7 @@ def emailResults(removed_songs):
     #         smtp.login(email_data["from-email"]["email"], email_data["from-email"]["password"])
     #     except Exception:
     #         logging.exception("Failed to login to email")
-        
+
     #     try:
     #         smtp.send_message(msg)
     #     except Exception:
