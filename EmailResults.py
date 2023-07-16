@@ -4,6 +4,7 @@ import smtplib
 import json
 import logging
 import os
+import time
 
 
 def sendEmail(removed_songs):
@@ -74,6 +75,7 @@ def emailResults(removed_songs):
     mail.Body = generateBody(removed_songs)
 
     mail.Send()
+    time.sleep(3)
     os.system("taskkill /im outlook.exe /f")
 
     # with smtplib.SMTP_SSL("smtp.gmail.com", 587) as smtp:
