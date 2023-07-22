@@ -34,5 +34,5 @@ def downloadPlaylists(playlists_current):
                         print(f"Error downloading video {video[0]} - {video[1]}: {e}")
 
         for videoname in os.listdir(download_folder):
-            if videoname.endswith(".mkv"):
+            if videoname.endswith(".ytdl"):
                 os.remove(os.path.join(playlist_path, videoname))

@@ -7,6 +7,9 @@ from DownloadPlaylists import downloadPlaylists
 # e.g. of video Youtube API can't recognize as unavailable:
 # https://www.youtube.com/watch?v=s9NZI48GVQ8
 
+# this video isn't being caught by any checks
+# https://www.youtube.com/watch?v=Yh-LXWz3sUY&ab_channel=glitchz
+
 playlists_current = populatePlaylists()
 
 downloadPlaylists(playlists_current)
