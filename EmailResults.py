@@ -1,5 +1,6 @@
 from email.message import EmailMessage
 import win32com.client as win32
+import subprocess
 import smtplib
 import json
 import logging
@@ -64,7 +65,28 @@ def removedSongsAmount(removed_songs):
     return amount
 
 
+def is_outlook_running():
+    try:
+        temp = subprocess.check_output("tasklist", shell=True)
+        return "OUTLOOK.EXE" in str(temp)
+    except Exception:
+        return False
+
+
 def emailResults(removed_songs):
+    attempts = 0
+    max_attempts = 5
+    while not is_outlook_running():
+        if attempts < max_attempts:
+            subprocess.Popen(
+                r"C:\Program Files\Microsoft Office\root\Office16\OUTLOOK.EXE"
+            )
+            time.sleep(10)
+            attempts += 1
+        else:
+            emailError(f"Failed to start Outlook after {max_attempts} attempts.", ":(")
+            return
+
     email_json = open("data.json")
     email_data = json.load(email_json)
 
@@ -75,7 +97,7 @@ def emailResults(removed_songs):
     mail.Body = generateBody(removed_songs)
 
     mail.Send()
-    time.sleep(3)
+    time.sleep(15)
     os.system("taskkill /im outlook.exe /f")
 
     # with smtplib.SMTP_SSL("smtp.gmail.com", 587) as smtp:

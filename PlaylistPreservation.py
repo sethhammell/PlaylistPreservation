@@ -13,6 +13,7 @@ from DownloadPlaylists import downloadPlaylists
 playlists_current = populatePlaylists()
 
 downloadPlaylists(playlists_current)
+
 postPlaylistsToFirebase(playlists_current)
 playlists_past = readPastPlaylistsFromFirebase()
 
