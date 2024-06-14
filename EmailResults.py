@@ -97,7 +97,7 @@ def emailResults(removed_songs):
     mail.Body = generateBody(removed_songs)
 
     mail.Send()
-    time.sleep(15)
+    time.sleep(30)
     os.system("taskkill /im outlook.exe /f")
 
     # with smtplib.SMTP_SSL("smtp.gmail.com", 587) as smtp:
