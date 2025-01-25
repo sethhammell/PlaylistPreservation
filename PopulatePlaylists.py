@@ -14,8 +14,9 @@ def ResetLogDirectory():
     directory = "TodaysLogs"
     parent_dir = playlists_data["logPath"]
     path = os.path.join(parent_dir, directory)
-    shutil.rmtree(path)
-    os.mkdir(path)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        os.mkdir(path)
 
 
 def populatePlaylists():
